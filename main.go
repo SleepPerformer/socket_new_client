@@ -14,6 +14,7 @@ var quitSemaphore chan bool
 func main() {
 	var tcpAddr *net.TCPAddr
 	var totalTime int64
+
 	tcpAddr, _ = net.ResolveTCPAddr("tcp", "10.0.0.1:6060")
 
 	conn, _ := net.DialTCP("tcp", nil, tcpAddr)
@@ -22,14 +23,29 @@ func main() {
 
 	go onMessageRecived(conn, &totalTime)
 	var count int
-	fmt.Println("测试次数:")
-	fmt.Scanln(&count)
-	for i := 0; i < count; i++ {
-		b := []byte("download#")
-		conn.Write(b)
+	for {
+		totalTime = 0
+		fmt.Println("测试次数:")
+		fmt.Scanln(&count)
+		if count == -1 {
+			break
+		}
+		for i := 0; i < count; i++ {
+			b := []byte("download#")
+			conn.Write(b)
+			// <-quitSemaphore
+			time.Sleep(500 * time.Millisecond)
+		}
 		<-quitSemaphore
-		time.Sleep(500 * time.Millisecond)
 	}
+	// fmt.Println("测试次数:")
+	// fmt.Scanln(&count)
+	// for i := 0; i < count; i++ {
+	// 	b := []byte("download#")
+	// 	conn.Write(b)
+	// 	// <-quitSemaphore
+	// 	time.Sleep(500 * time.Millisecond)
+	// }
 	// <-quitSemaphore
 }
 
